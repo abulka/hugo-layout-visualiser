@@ -55,9 +55,29 @@ def process(themeName, themePath, htmlPath):
                 if entry not in previousEntries:
                     previousEntries.append(entry)
                     uml += f'{entry}\n'
+
+                checkFilesExist(fromFileName, partialFilenameNoExt, themePathInclThemeName)
             else:
                 if debug: print(f"❌ {line} / no match?")
     return uml
+
+
+def fileExistsLooseMatch(filename):
+    return bool(glob.glob(filename))
+
+
+def checkFilesExist(fromFileName, partialFilenameNoExt, themePathInclThemeName):
+    _fromFile = os.path.join(themePathInclThemeName, fromFileName + '.html')
+    if not os.path.exists(_fromFile):
+        print(f"missing from: {_fromFile}")
+
+    _toDir = os.path.join(themePathInclThemeName, partialFilenameNoExt)
+    if os.path.isdir(_toDir):
+        return
+    # try again, to find actual file
+    _toFile = os.path.join(themePathInclThemeName, partialFilenameNoExt + '.*')
+    if not fileExistsLooseMatch(_toFile):
+        print(f"missing to: directory {_toDir} or file {_toFile}")
 
 
 # Now recurse
