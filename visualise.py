@@ -3,8 +3,8 @@ import os
 import re
 from textwrap import dedent
 from dataclasses import dataclass  # requires 3.7
+from dataclasses import field
 from typing import List, Set, Dict, Tuple, Optional
-
 
 THEME_PATH = "/Users/Andy/Devel/hugo_tests/quickstart/themes"
 
@@ -12,14 +12,13 @@ partialRe = r'(partial|partialCached)[\s\w\(]*\"([\w\.\-\/]+)\"\s'
 finalPlantUML = ""
 debug = False
 
-previousEntries = []
-
 
 def isReserved(path):
-    return path in ["_default/single", "_default/baseof", "_default/list", "index"]
+    return path in ["_default/single", "_default/baseof", "_default/list", "index",
+                    "_default/taxonomy"]
 
 
-def process(themeName, themePath, htmlPath, stats):
+def process(themeName, themePath, htmlPath, previousEntries, stats):
     """Process a single html file looking for 'partial' entries, returns a chunk of plantUML"""
     uml = ""
     themePathInclThemeName = os.path.join(themePath, themeName, "layouts")
@@ -71,7 +70,6 @@ def process(themeName, themePath, htmlPath, stats):
     return uml
 
 
-
 def fileExistsLooseMatch(filename):
     return bool(glob.glob(filename))
 
@@ -94,9 +92,13 @@ def checkPathExists(fromFileName, partialFilenameNoExt, themePathInclThemeName):
 
 @dataclass
 class Stats:
-    html_files = set()
-    partial_files = set()
+    html_files: set = field(default_factory=set)
+    partial_files: set = field(default_factory=set)
+
     # partial_dirs = []
+
+    def isEmpty(self):
+        return len(self.html_files) == 0 and len(self.partial_files) == 0
 
     def _add(self, path):
         head, tail = os.path.split(path)
@@ -136,11 +138,14 @@ class Stats:
 def scan(theme, themePath=THEME_PATH):
     umls = ""
     stats = Stats()
+    previousEntries = []
+
+    assert stats.isEmpty()
 
     rootDir = os.path.join(themePath, f"{theme}/layouts/") + '/**/*.html'
     for path in glob.iglob(rootDir, recursive=True):
         if debug: print(themePath, path)
-        umls += process(theme, themePath, path, stats)
+        umls += process(theme, themePath, path, previousEntries, stats)
 
     finalPlantUML = f"""
 @startuml "test-uml"
@@ -149,8 +154,9 @@ title Theme {theme}
 
 {umls.rstrip()}
 
-class "_default/single" << (S,#FF7700) _default >>
-class "_default/list" << (L,#248811) _default >>
+class "_default/single" << (S,#FF7700) >>
+class "_default/list" << (L,#248811) >>
+class "_default/taxonomy" << (T,red) >>
 class "_default/baseof" << (B,orchid) >>
 class index << (I,yellow) >>
 
@@ -164,10 +170,14 @@ hide empty members
     # print(finalPlantUML)
     with open(f"out_{theme}.wsd", "w") as fp:
         fp.write(finalPlantUML.lstrip())
-    # print(stats.report())
+
+    if debug:
+        print(umls)
+        print(stats.report())
+
 
 scan("ananke")
-# scan("toha")
-# scan("zzo")
+scan("toha")
+scan("zzo")
 
 print("done")
