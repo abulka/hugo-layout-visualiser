@@ -5,10 +5,12 @@ from typing import List
 from stats import Stats
 from util import isReserved
 
-THEME_PATH = "/Users/Andy/Devel/hugo_tests/quickstart/themes"
+THEME_PATH = "/Users/Andy/Devel/hugo_tests/quickstart/themes"  # iMac
+# THEME_PATH = "/Users/Andy/Devel/hugo_tests/hugo-bare1/themes"  # macbook air
 partialRe = r'(partial|partialCached)[\s\w\(]*\"([\w\.\-\/]+)\"\s'
 debug = False
 buildDirStructure = True
+scanForPartials = False
 
 
 def process(file: str, themeName: str, themePath: str, relationshipEntries: List, stats: Stats):
@@ -27,42 +29,42 @@ def process(file: str, themeName: str, themePath: str, relationshipEntries: List
             stats.addDir(relDir)
             uml += f'{entry}\n'
 
-    with open(file) as fp:
-        lines = fp.readlines()
+    if scanForPartials:
+        with open(file) as fp:
+            lines = fp.readlines()
+        for line in lines:
+            if "partial" in line:
+                line = line.strip()
+                m = re.search(partialRe, line)
+                if m:
+                    foundStr = m.group(2)
+                    if len(foundStr.split(' ')) > 1:
+                        print(f"skipping difficult line {m.group(0)}")
+                        continue
 
-    for line in lines:
-        if "partial" in line:
-            line = line.strip()
-            m = re.search(partialRe, line)
-            if m:
-                foundStr = m.group(2)
-                if len(foundStr.split(' ')) > 1:
-                    print(f"skipping difficult line {m.group(0)}")
-                    continue
+                    """
+                    this is the tricky bit.
+                    where is the partial? we have a basename only at this point.
+                    what is its full path? its relative to the partials dir !
+                    And if it doesn't exist, then it might be higher up the directory tree?
+                    """
+                    partialFilenameNoExt = os.path.splitext(foundStr)[0]
+                    partialFilenameNoExt = os.path.join("partials", partialFilenameNoExt)
 
-                """
-                this is the tricky bit.
-                where is the partial? we have a basename only at this point.
-                what is its full path? its relative to the partials dir !
-                And if it doesn't exist, then it might be higher up the directory tree?
-                """
-                partialFilenameNoExt = os.path.splitext(foundStr)[0]
-                partialFilenameNoExt = os.path.join("partials", partialFilenameNoExt)
+                    if debug: print(f"✅ {line} / found match: {partialFilenameNoExt}")
+                    if isReserved(relPathNoExt):
+                        connector = "--->"
+                    else:
+                        connector = "..>"
+                    entry = f'"{relPathNoExt}" {connector} "{partialFilenameNoExt}"'
+                    if entry not in relationshipEntries:
+                        relationshipEntries.append(entry)
+                        uml += f'{entry}\n'
+                        stats.add(relPathNoExt, partialFilenameNoExt)
 
-                if debug: print(f"✅ {line} / found match: {partialFilenameNoExt}")
-                if isReserved(relPathNoExt):
-                    connector = "--->"
+                    checkPathExists(relPathNoExt, partialFilenameNoExt, themePathInclThemeName)
                 else:
-                    connector = "..>"
-                entry = f'"{relPathNoExt}" {connector} "{partialFilenameNoExt}"'
-                if entry not in relationshipEntries:
-                    relationshipEntries.append(entry)
-                    uml += f'{entry}\n'
-                    stats.add(relPathNoExt, partialFilenameNoExt)
-
-                checkPathExists(relPathNoExt, partialFilenameNoExt, themePathInclThemeName)
-            else:
-                if debug: print(f"❌ {line} / no match?")
+                    if debug: print(f"❌ {line} / no match?")
 
     return uml
 
@@ -136,6 +138,8 @@ hide empty members
 # scan("ananke")
 # scan("toha")
 # scan("zzo")
-scan("docsy", "/Users/Andy/Devel/hugo_tests/docsy-example/themes/")
+# scan("docsy", "/Users/Andy/Devel/hugo_tests/docsy-example/themes/")
+# scan("diagnostic-andy", "/Users/Andy/Devel/hugo_tests/hugo-bare1/themes/")
+scan("example_theme", "/Users/Andy/Devel/hugo_tests/hugo-layout-visualiser/")
 
 print("done")
