@@ -1,35 +1,27 @@
 import glob
 import os
 import re
-from textwrap import dedent
-from dataclasses import dataclass  # requires 3.7
-from dataclasses import field
-from typing import List, Set, Dict, Tuple, Optional
+from typing import List
+from stats import Stats
+from util import isReserved
 
 THEME_PATH = "/Users/Andy/Devel/hugo_tests/quickstart/themes"
-
 partialRe = r'(partial|partialCached)[\s\w\(]*\"([\w\.\-\/]+)\"\s'
-finalPlantUML = ""
 debug = False
 
 
-def isReserved(path):
-    return path in ["_default/single", "_default/baseof", "_default/list", "index",
-                    "_default/taxonomy"]
-
-
-def process(themeName, themePath, htmlPath, previousEntries, stats):
+def process(themeName: str, themePath: str, file: str, relationshipEntries: List, stats: Stats):
     """Process a single html file looking for 'partial' entries, returns a chunk of plantUML"""
     uml = ""
     themePathInclThemeName = os.path.join(themePath, themeName, "layouts")
-    relPath = os.path.relpath(htmlPath, themePathInclThemeName)
+    relPath = os.path.relpath(file, themePathInclThemeName)
     # print(relPath)
 
     # fromFileName = os.path.basename(htmlPath)
     fromFileName = relPath
 
     fromFileName = os.path.splitext(fromFileName)[0]
-    with open(htmlPath) as fp:
+    with open(file) as fp:
         lines = fp.readlines()
 
     for line in lines:
@@ -46,11 +38,9 @@ def process(themeName, themePath, htmlPath, previousEntries, stats):
                 this is the tricky bit.
                 where is the partial? we have a basename only at this point.
                 what is its full path? its relative to the partials dir !
-                And if it doesn't exist, then it might be higher up the directory tree
+                And if it doesn't exist, then it might be higher up the directory tree?
                 """
                 partialFilenameNoExt = os.path.splitext(foundStr)[0]
-                # what is its full path? its relative to the partials dir !
-                # relDir = os.path.dirname(relPath)
                 partialFilenameNoExt = os.path.join("partials", partialFilenameNoExt)
 
                 if debug: print(f"✅ {line} / found match: {partialFilenameNoExt}")
@@ -59,8 +49,8 @@ def process(themeName, themePath, htmlPath, previousEntries, stats):
                 else:
                     connector = "..>"
                 entry = f'"{fromFileName}" {connector} "{partialFilenameNoExt}"'
-                if entry not in previousEntries:
-                    previousEntries.append(entry)
+                if entry not in relationshipEntries:
+                    relationshipEntries.append(entry)
                     uml += f'{entry}\n'
                     stats.add(fromFileName, partialFilenameNoExt)
 
@@ -90,62 +80,21 @@ def checkPathExists(fromFileName, partialFilenameNoExt, themePathInclThemeName):
 
 # Now recurse
 
-@dataclass
-class Stats:
-    html_files: set = field(default_factory=set)
-    partial_files: set = field(default_factory=set)
-
-    # partial_dirs = []
-
-    def isEmpty(self):
-        return len(self.html_files) == 0 and len(self.partial_files) == 0
-
-    def _add(self, path):
-        head, tail = os.path.split(path)
-        if head.split(os.path.sep)[0] == 'partials':
-            self.partial_files.add(path)
-        else:
-            self.html_files.add(path)
-
-    def add(self, fromFileName, partialFilenameNoExt):
-        self._add(fromFileName)
-        self._add(partialFilenameNoExt)
-
-    def getUmlsForPartials(self):
-        result = ""
-        for path in self.partial_files:
-            if isReserved(path):
-                continue
-            result += f'class "{path}" << (P,cornsilk) >> {{}}\n'
-        return result
-
-    def getUmlsForHtmlFiles(self):
-        result = ""
-        for path in self.html_files:
-            if isReserved(path):
-                continue
-            result += f'class "{path}" << (H, cadetblue) >> {{}}\n'
-        return result
-
-    def report(self):
-        return f"""
-        FILES {self.html_files}
-
-        PARTIALS {self.partial_files}
-        """
-
 
 def scan(theme, themePath=THEME_PATH):
+    """Main entry point, scans the `theme` at `themePath` and writes a file
+    of plantUML representing the them structure to `theme_out.wsd`
+    """
     umls = ""
     stats = Stats()
-    previousEntries = []
+    relationshipEntries = []
 
     assert stats.isEmpty()
 
     rootDir = os.path.join(themePath, f"{theme}/layouts/") + '/**/*.html'
     for path in glob.iglob(rootDir, recursive=True):
         if debug: print(themePath, path)
-        umls += process(theme, themePath, path, previousEntries, stats)
+        umls += process(theme, themePath, path, relationshipEntries, stats)
 
     finalPlantUML = f"""
 @startuml "test-uml"
