@@ -8,6 +8,7 @@ THEME_PATH = "/Users/Andy/Devel/hugo_tests/quickstart/themes"
 partialRe = r'.*[partial|partialCached]\s"(.*)"\s.*'
 finalPlantUML = ""
 debug = False
+previousEntries = []
 
 
 def process(htmlPath):
@@ -25,13 +26,17 @@ def process(htmlPath):
                 foundStr = m.group(1)
                 partialFilenameNoExt = os.path.splitext(foundStr)[0]
                 if debug: print(f"✅ {line} / found match: {partialFilenameNoExt}")
-                uml += f'"{fromFileName}" - "{partialFilenameNoExt}"\n'
+                entry = f'"{fromFileName}" - "{partialFilenameNoExt}"'
+                if entry not in previousEntries:
+                    previousEntries.append(entry)
+                    uml += f'{entry}\n'
             else:
                 if debug: print(f"❌ {line} / no match?")
     return uml
 
 
 # Now recurse
+
 
 umls = ""
 # umls += process(os.path.join(THEME_PATH, "ananke/layouts/_default/baseof.html"))
@@ -45,12 +50,12 @@ finalPlantUML = f"""
 @startuml "test-uml"
 skinparam backgroundcolor Ivory/Azure
 
-{umls}
+{umls.rstrip()}
 
 @enduml
 """
 # print(finalPlantUML)
 with open("out.wsd", "w") as fp:
-    fp.write(finalPlantUML)
+    fp.write(finalPlantUML.lstrip())
 
 print("done")
