@@ -13,7 +13,7 @@ buildDirStructure = True
 scanForPartials = True
 
 
-def processDirMode(path, theme, themePath):
+def processDirMode(path, theme, themePath, stats: Stats):
     themePathInclThemeName = os.path.join(themePath, theme, "layouts")
     relPath = os.path.relpath(path, themePathInclThemeName)
     relDir = os.path.dirname(relPath)
@@ -21,6 +21,7 @@ def processDirMode(path, theme, themePath):
         relPath = f"{relPath}/"
     if relDir == "":
         relDir = "layouts"
+    stats.addDir(relDir)
     return f'"{relDir}/" -- "{relPath}"\n'
 
 
@@ -110,7 +111,7 @@ def scan(theme, themePath=THEME_PATH):
         rootDir = os.path.join(themePath, f"{theme}/layouts/") + '/**/*'
         for path in glob.iglob(rootDir, recursive=True):
             if debug: print(f"dir mode: {path}")
-            umls += processDirMode(path, theme, themePath)
+            umls += processDirMode(path, theme, themePath, stats)
 
     if scanForPartials:
         rootDir = os.path.join(themePath, f"{theme}/layouts/") + '/**/*.html'
@@ -132,8 +133,12 @@ class "_default/taxonomy.html" << (T,red) >>
 class "_default/baseof.html" << (B,orchid) >>
 class "index.html" << (I,yellow) >>
 
+class "_default/" << (_,red) >>
+class "partials/" << (P,orange) >>
+
 {stats.getUmlsForPartials()}
 {stats.getUmlsForHtmlFiles()}
+{stats.getDirsUml()}
 
 hide empty members
 

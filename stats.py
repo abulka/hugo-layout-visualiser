@@ -13,7 +13,7 @@ class Stats:
     """
     html_files: set = field(default_factory=set)
     partial_files: set = field(default_factory=set)
-    # dirNodes: List = field(default_factory=list)
+    dirNodes: List = field(default_factory=list)
 
     # partial_dirs = []
 
@@ -31,14 +31,14 @@ class Stats:
         self._add(fromFileName)
         self._add(partialFilenameNoExt)
 
-    # def addDir(self, dir: str):
-    #     self.dirNodes.append(dir)
-    #
-    # def getDirsUml(self):
-    #     result = ""
-    #     for _dir in self.dirNodes:
-    #         result += f'class "{_dir}/" << (D,red) >> {{}}\n'
-    #     return result
+    def addDir(self, dir: str):
+        self.dirNodes.append(dir)
+
+    def getDirsUml(self):
+        result = ""
+        for _dir in self.dirNodes:
+            result += f'class "{_dir}/" << (-,red) >> {{}}\n'
+        return result
 
     def getUmlsForPartials(self):
         result = ""
