@@ -117,7 +117,7 @@ hide empty members
 @enduml
     """
     # print(finalPlantUML)
-    with open(f"out_{theme}.wsd", "w") as fp:
+    with open(f"out/{theme}.wsd", "w") as fp:
         fp.write(finalPlantUML.lstrip())
 
     if debug:
@@ -125,8 +125,9 @@ hide empty members
         print(stats.report())
 
 
-scan("ananke")
-scan("toha")
-scan("zzo")
+# scan("ananke")
+# scan("toha")
+# scan("zzo")
+scan("docsy", "/Users/Andy/Devel/hugo_tests/docsy-example/themes/")
 
 print("done")
