@@ -11,10 +11,15 @@ debug = False
 previousEntries = []
 
 
-def process(htmlPath):
+def process(themeName, themePath, htmlPath):
+    """Process a single html file looking for 'partial' entries, returns a chunk of plantUML"""
     uml = ""
-    fromFileName = os.path.basename(htmlPath)
-    # fromFileName = htmlPath
+    themePathInclThemeName = os.path.join(themePath, themeName, "layouts")
+    relPath = os.path.relpath(htmlPath, themePathInclThemeName)
+    # print(relPath)
+
+    # fromFileName = os.path.basename(htmlPath)
+    fromFileName = relPath
 
     fromFileName = os.path.splitext(fromFileName)[0]
     with open(htmlPath) as fp:
@@ -29,9 +34,20 @@ def process(htmlPath):
                 if len(foundStr.split(' ')) > 1:
                     print(f"skipping difficult line {m.group(0)}")
                     continue
+
+                """
+                this is the tricky bit.
+                where is the partial? we have a basename only at this point.
+                what is its full path? its relative to the partials dir !
+                And if it doesn't exist, then it might be higher up the directory tree
+                """
                 partialFilenameNoExt = os.path.splitext(foundStr)[0]
+                # what is its full path? its relative to the partials dir !
+                # relDir = os.path.dirname(relPath)
+                partialFilenameNoExt = os.path.join("partials", partialFilenameNoExt)
+
                 if debug: print(f"✅ {line} / found match: {partialFilenameNoExt}")
-                if fromFileName in ["single", "baseof", "list", "index"]:
+                if fromFileName in ["_default/single", "_default/baseof", "_default/list", "index"]:
                     connector = "--->"
                 else:
                     connector = "..>"
@@ -46,13 +62,13 @@ def process(htmlPath):
 
 # Now recurse
 
-def scan(theme):
+def scan(theme, themePath=THEME_PATH):
     umls = ""
 
-    rootDir = os.path.join(THEME_PATH, f"{theme}/layouts/") + '/**/*.html'
+    rootDir = os.path.join(themePath, f"{theme}/layouts/") + '/**/*.html'
     for path in glob.iglob(rootDir, recursive=True):
-        if debug: print(path)
-        umls += process(path)
+        if debug: print(themePath, path)
+        umls += process(theme, themePath, path)
 
     finalPlantUML = f"""
 @startuml "test-uml"
@@ -60,10 +76,12 @@ skinparam backgroundcolor Ivory/Azure
 
 {umls.rstrip()}
 
-class single << (S,#FF7700) _default >>
-class list << (L,#248811) _default >>
-class baseof << (B,orchid) >>
+class "_default/single" << (S,#FF7700) _default >>
+class "_default/list" << (L,#248811) _default >>
+class "_default/baseof" << (B,orchid) >>
 class index << (I,yellow) >>
+
+hide empty members
 
 @enduml
     """
