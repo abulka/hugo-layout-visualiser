@@ -8,9 +8,9 @@ from util import isReserved
 THEME_PATH = "/Users/Andy/Devel/hugo_tests/quickstart/themes"  # iMac
 # THEME_PATH = "/Users/Andy/Devel/hugo_tests/hugo-bare1/themes"  # macbook air
 partialRe = r'(partial|partialCached)[\s\w\(]*\"([\w\.\-\/]+)\"\s'
-debug = False
+debug = True
 buildDirStructure = True
-scanForPartials = False
+scanForPartials = True
 
 
 def processDirMode(path, theme, themePath):
@@ -29,53 +29,48 @@ def process(file: str, themeName: str, themePath: str, relationshipEntries: List
     uml = ""
     themePathInclThemeName = os.path.join(themePath, themeName, "layouts")
     relPath = os.path.relpath(file, themePathInclThemeName)
-    relPathNoExt = os.path.splitext(relPath)[0]
+    # relPathNoExt = os.path.splitext(relPath)[0]
+    relPathNoExt = relPath
     relDir = os.path.dirname(relPath)
     partialFilenameNoExt = "??"
 
-    if buildDirStructure:
-        if relDir != "partials":  # too messy to include
-            entry = f'"{relDir}/" *-- "{relPathNoExt}"'
-            print(entry)
-            stats.addDir(relDir)
-            uml += f'{entry}\n'
+    with open(file) as fp:
+        lines = fp.readlines()
+    for line in lines:
+        if "partial" in line:
+            line = line.strip()
+            m = re.search(partialRe, line)
+            if m:
+                foundStr = m.group(2)
+                if len(foundStr.split(' ')) > 1:
+                    print(f"skipping difficult line {m.group(0)}")
+                    continue
 
-    if scanForPartials:
-        with open(file) as fp:
-            lines = fp.readlines()
-        for line in lines:
-            if "partial" in line:
-                line = line.strip()
-                m = re.search(partialRe, line)
-                if m:
-                    foundStr = m.group(2)
-                    if len(foundStr.split(' ')) > 1:
-                        print(f"skipping difficult line {m.group(0)}")
-                        continue
+                """
+                this is the tricky bit.
+                where is the partial? we have a basename only at this point.
+                what is its full path? its relative to the partials dir !
+                And if it doesn't exist, then it might be higher up the directory tree?
+                """
+                # partialFilenameNoExt = os.path.splitext(foundStr)[0]
+                partialFilenameNoExt = foundStr
+                partialFilenameNoExt = os.path.join("partials", partialFilenameNoExt)
 
-                    """
-                    this is the tricky bit.
-                    where is the partial? we have a basename only at this point.
-                    what is its full path? its relative to the partials dir !
-                    And if it doesn't exist, then it might be higher up the directory tree?
-                    """
-                    partialFilenameNoExt = os.path.splitext(foundStr)[0]
-                    partialFilenameNoExt = os.path.join("partials", partialFilenameNoExt)
-
-                    if debug: print(f"✅ {line} / found match: {partialFilenameNoExt}")
-                    if isReserved(relPathNoExt):
-                        connector = "--->"
-                    else:
-                        connector = "..>"
-                    entry = f'"{relPathNoExt}" {connector} "{partialFilenameNoExt}"'
-                    if entry not in relationshipEntries:
-                        relationshipEntries.append(entry)
-                        uml += f'{entry}\n'
-                        stats.add(relPathNoExt, partialFilenameNoExt)
-
-                    checkPathExists(relPathNoExt, partialFilenameNoExt, themePathInclThemeName)
+                if debug: print(f"✅ {line} / found match: {partialFilenameNoExt}")
+                if isReserved(relPathNoExt):
+                    connector = "*..>"
                 else:
-                    if debug: print(f"❌ {line} / no match?")
+                    connector = "..>"
+                entry = f'"{relPathNoExt}" {connector} "{partialFilenameNoExt}"'
+                # entry += " : {{ partial }}"
+                if entry not in relationshipEntries:
+                    relationshipEntries.append(entry)
+                    uml += f'{entry}\n'
+                    stats.add(relPathNoExt, partialFilenameNoExt)
+
+                checkPathExists(relPathNoExt, partialFilenameNoExt, themePathInclThemeName)
+            else:
+                if debug: print(f"❌ {line} / no match?")
 
     return uml
 
@@ -111,15 +106,17 @@ def scan(theme, themePath=THEME_PATH):
 
     assert stats.isEmpty()
 
-    rootDir = os.path.join(themePath, f"{theme}/layouts/") + '/**/*'
-    for path in glob.iglob(rootDir, recursive=True):
-        print(f"dir mode: {path}")
-        umls += processDirMode(path, theme, themePath)
+    if buildDirStructure:
+        rootDir = os.path.join(themePath, f"{theme}/layouts/") + '/**/*'
+        for path in glob.iglob(rootDir, recursive=True):
+            if debug: print(f"dir mode: {path}")
+            umls += processDirMode(path, theme, themePath)
 
-    # rootDir = os.path.join(themePath, f"{theme}/layouts/") + '/**/*.html'
-    # for path in glob.iglob(rootDir, recursive=True):
-    #     if debug: print(themePath, path)
-    #     umls += process(path, theme, themePath, relationshipEntries, stats)
+    if scanForPartials:
+        rootDir = os.path.join(themePath, f"{theme}/layouts/") + '/**/*.html'
+        for path in glob.iglob(rootDir, recursive=True):
+            if debug: print(themePath, path)
+            umls += process(path, theme, themePath, relationshipEntries, stats)
 
     finalPlantUML = f"""
 @startuml "test-uml"
@@ -129,15 +126,14 @@ title Theme {theme}
 
 {umls.rstrip()}
 
-class "_default/single" << (S,#FF7700) >>
-class "_default/list" << (L,#248811) >>
-class "_default/taxonomy" << (T,red) >>
-class "_default/baseof" << (B,orchid) >>
-class index << (I,yellow) >>
+class "_default/single.html" << (S,#FF7700) >>
+class "_default/list.html" << (L,#248811) >>
+class "_default/taxonomy.html" << (T,red) >>
+class "_default/baseof.html" << (B,orchid) >>
+class "index.html" << (I,yellow) >>
 
 {stats.getUmlsForPartials()}
 {stats.getUmlsForHtmlFiles()}
-{stats.getDirsUml()}
 
 hide empty members
 
