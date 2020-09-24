@@ -2,16 +2,24 @@ import glob
 import os
 import re
 from textwrap import dedent
+from dataclasses import dataclass  # requires 3.7
+from typing import List, Set, Dict, Tuple, Optional
+
 
 THEME_PATH = "/Users/Andy/Devel/hugo_tests/quickstart/themes"
 
 partialRe = r'(partial|partialCached)[\s\w\(]*\"([\w\.\-\/]+)\"\s'
 finalPlantUML = ""
 debug = False
+
 previousEntries = []
 
 
-def process(themeName, themePath, htmlPath):
+def isReserved(path):
+    return path in ["_default/single", "_default/baseof", "_default/list", "index"]
+
+
+def process(themeName, themePath, htmlPath, stats):
     """Process a single html file looking for 'partial' entries, returns a chunk of plantUML"""
     uml = ""
     themePathInclThemeName = os.path.join(themePath, themeName, "layouts")
@@ -47,7 +55,7 @@ def process(themeName, themePath, htmlPath):
                 partialFilenameNoExt = os.path.join("partials", partialFilenameNoExt)
 
                 if debug: print(f"✅ {line} / found match: {partialFilenameNoExt}")
-                if fromFileName in ["_default/single", "_default/baseof", "_default/list", "index"]:
+                if isReserved(fromFileName):
                     connector = "--->"
                 else:
                     connector = "..>"
@@ -55,18 +63,20 @@ def process(themeName, themePath, htmlPath):
                 if entry not in previousEntries:
                     previousEntries.append(entry)
                     uml += f'{entry}\n'
+                    stats.add(fromFileName, partialFilenameNoExt)
 
-                checkFilesExist(fromFileName, partialFilenameNoExt, themePathInclThemeName)
+                checkPathExists(fromFileName, partialFilenameNoExt, themePathInclThemeName)
             else:
                 if debug: print(f"❌ {line} / no match?")
     return uml
+
 
 
 def fileExistsLooseMatch(filename):
     return bool(glob.glob(filename))
 
 
-def checkFilesExist(fromFileName, partialFilenameNoExt, themePathInclThemeName):
+def checkPathExists(fromFileName, partialFilenameNoExt, themePathInclThemeName):
     _fromFile = os.path.join(themePathInclThemeName, fromFileName + '.html')
     if not os.path.exists(_fromFile):
         print(f"missing from: {_fromFile}")
@@ -82,17 +92,60 @@ def checkFilesExist(fromFileName, partialFilenameNoExt, themePathInclThemeName):
 
 # Now recurse
 
+@dataclass
+class Stats:
+    html_files = set()
+    partial_files = set()
+    # partial_dirs = []
+
+    def _add(self, path):
+        head, tail = os.path.split(path)
+        if head.split(os.path.sep)[0] == 'partials':
+            self.partial_files.add(path)
+        else:
+            self.html_files.add(path)
+
+    def add(self, fromFileName, partialFilenameNoExt):
+        self._add(fromFileName)
+        self._add(partialFilenameNoExt)
+
+    def getUmlsForPartials(self):
+        result = ""
+        for path in self.partial_files:
+            if isReserved(path):
+                continue
+            result += f'class "{path}" << (P,cornsilk) >> {{}}\n'
+        return result
+
+    def getUmlsForHtmlFiles(self):
+        result = ""
+        for path in self.html_files:
+            if isReserved(path):
+                continue
+            result += f'class "{path}" << (H, cadetblue) >> {{}}\n'
+        return result
+
+    def report(self):
+        return f"""
+        FILES {self.html_files}
+
+        PARTIALS {self.partial_files}
+        """
+
+
 def scan(theme, themePath=THEME_PATH):
     umls = ""
+    stats = Stats()
 
     rootDir = os.path.join(themePath, f"{theme}/layouts/") + '/**/*.html'
     for path in glob.iglob(rootDir, recursive=True):
         if debug: print(themePath, path)
-        umls += process(theme, themePath, path)
+        umls += process(theme, themePath, path, stats)
 
     finalPlantUML = f"""
 @startuml "test-uml"
 skinparam backgroundcolor Ivory/Azure
+title Theme {theme}
 
 {umls.rstrip()}
 
@@ -101,6 +154,9 @@ class "_default/list" << (L,#248811) _default >>
 class "_default/baseof" << (B,orchid) >>
 class index << (I,yellow) >>
 
+{stats.getUmlsForPartials()}
+{stats.getUmlsForHtmlFiles()}
+
 hide empty members
 
 @enduml
@@ -108,9 +164,10 @@ hide empty members
     # print(finalPlantUML)
     with open(f"out_{theme}.wsd", "w") as fp:
         fp.write(finalPlantUML.lstrip())
+    # print(stats.report())
 
 scan("ananke")
-scan("toha")
-scan("zzo")
+# scan("toha")
+# scan("zzo")
 
 print("done")
