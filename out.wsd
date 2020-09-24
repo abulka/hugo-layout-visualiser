@@ -1,0 +1,11 @@
+
+@startuml "test-uml"
+skinparam backgroundcolor Ivory/Azure
+
+"baseof" - "site-favicon"
+"baseof" - "head-additions"
+"baseof" - "site-header"
+"baseof" - "site-footer"
+"baseof" - "site-scripts"
+
+@enduml
