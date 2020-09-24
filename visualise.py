@@ -13,6 +13,17 @@ buildDirStructure = True
 scanForPartials = False
 
 
+def processDirMode(path, theme, themePath):
+    themePathInclThemeName = os.path.join(themePath, theme, "layouts")
+    relPath = os.path.relpath(path, themePathInclThemeName)
+    relDir = os.path.dirname(relPath)
+    if "." not in relPath:
+        relPath = f"{relPath}/"
+    if relDir == "":
+        relDir = "layouts"
+    return f'"{relDir}/" -- "{relPath}"\n'
+
+
 def process(file: str, themeName: str, themePath: str, relationshipEntries: List, stats: Stats):
     """Process a single html file looking for 'partial' entries, returns a chunk of plantUML"""
     uml = ""
@@ -100,14 +111,20 @@ def scan(theme, themePath=THEME_PATH):
 
     assert stats.isEmpty()
 
-    rootDir = os.path.join(themePath, f"{theme}/layouts/") + '/**/*.html'
+    rootDir = os.path.join(themePath, f"{theme}/layouts/") + '/**/*'
     for path in glob.iglob(rootDir, recursive=True):
-        if debug: print(themePath, path)
-        umls += process(path, theme, themePath, relationshipEntries, stats)
+        print(f"dir mode: {path}")
+        umls += processDirMode(path, theme, themePath)
+
+    # rootDir = os.path.join(themePath, f"{theme}/layouts/") + '/**/*.html'
+    # for path in glob.iglob(rootDir, recursive=True):
+    #     if debug: print(themePath, path)
+    #     umls += process(path, theme, themePath, relationshipEntries, stats)
 
     finalPlantUML = f"""
 @startuml "test-uml"
 skinparam backgroundcolor Ivory/Azure
+set namespaceSeparator none
 title Theme {theme}
 
 {umls.rstrip()}
