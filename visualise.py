@@ -8,19 +8,25 @@ from util import isReserved
 THEME_PATH = "/Users/Andy/Devel/hugo_tests/quickstart/themes"
 partialRe = r'(partial|partialCached)[\s\w\(]*\"([\w\.\-\/]+)\"\s'
 debug = False
+buildDirStructure = True
 
 
-def process(themeName: str, themePath: str, file: str, relationshipEntries: List, stats: Stats):
+def process(file: str, themeName: str, themePath: str, relationshipEntries: List, stats: Stats):
     """Process a single html file looking for 'partial' entries, returns a chunk of plantUML"""
     uml = ""
     themePathInclThemeName = os.path.join(themePath, themeName, "layouts")
     relPath = os.path.relpath(file, themePathInclThemeName)
-    # print(relPath)
+    relPathNoExt = os.path.splitext(relPath)[0]
+    relDir = os.path.dirname(relPath)
+    partialFilenameNoExt = "??"
 
-    # fromFileName = os.path.basename(htmlPath)
-    fromFileName = relPath
+    if buildDirStructure:
+        if relDir != "partials":  # too messy to include
+            entry = f'"{relDir}/" *-- "{relPathNoExt}"'
+            print(entry)
+            stats.addDir(relDir)
+            uml += f'{entry}\n'
 
-    fromFileName = os.path.splitext(fromFileName)[0]
     with open(file) as fp:
         lines = fp.readlines()
 
@@ -44,19 +50,20 @@ def process(themeName: str, themePath: str, file: str, relationshipEntries: List
                 partialFilenameNoExt = os.path.join("partials", partialFilenameNoExt)
 
                 if debug: print(f"✅ {line} / found match: {partialFilenameNoExt}")
-                if isReserved(fromFileName):
+                if isReserved(relPathNoExt):
                     connector = "--->"
                 else:
                     connector = "..>"
-                entry = f'"{fromFileName}" {connector} "{partialFilenameNoExt}"'
+                entry = f'"{relPathNoExt}" {connector} "{partialFilenameNoExt}"'
                 if entry not in relationshipEntries:
                     relationshipEntries.append(entry)
                     uml += f'{entry}\n'
-                    stats.add(fromFileName, partialFilenameNoExt)
+                    stats.add(relPathNoExt, partialFilenameNoExt)
 
-                checkPathExists(fromFileName, partialFilenameNoExt, themePathInclThemeName)
+                checkPathExists(relPathNoExt, partialFilenameNoExt, themePathInclThemeName)
             else:
                 if debug: print(f"❌ {line} / no match?")
+
     return uml
 
 
@@ -94,7 +101,7 @@ def scan(theme, themePath=THEME_PATH):
     rootDir = os.path.join(themePath, f"{theme}/layouts/") + '/**/*.html'
     for path in glob.iglob(rootDir, recursive=True):
         if debug: print(themePath, path)
-        umls += process(theme, themePath, path, relationshipEntries, stats)
+        umls += process(path, theme, themePath, relationshipEntries, stats)
 
     finalPlantUML = f"""
 @startuml "test-uml"
@@ -111,6 +118,7 @@ class index << (I,yellow) >>
 
 {stats.getUmlsForPartials()}
 {stats.getUmlsForHtmlFiles()}
+{stats.getDirsUml()}
 
 hide empty members
 
