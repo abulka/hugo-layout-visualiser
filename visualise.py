@@ -5,7 +5,7 @@ from textwrap import dedent
 
 THEME_PATH = "/Users/Andy/Devel/hugo_tests/quickstart/themes"
 
-partialRe = r'.*[partial|partialCached]\s"(.*)"\s.*'
+partialRe = r'(partial|partialCached)[\s\w\(]*\"([\w\.\-\/]+)\"\s'
 finalPlantUML = ""
 debug = False
 previousEntries = []
@@ -13,8 +13,9 @@ previousEntries = []
 
 def process(htmlPath):
     uml = ""
-    # fromFileName = os.path.basename(htmlPath)
-    fromFileName = htmlPath
+    fromFileName = os.path.basename(htmlPath)
+    # fromFileName = htmlPath
+
     fromFileName = os.path.splitext(fromFileName)[0]
     with open(htmlPath) as fp:
         lines = fp.readlines()
@@ -24,7 +25,7 @@ def process(htmlPath):
             line = line.strip()
             m = re.search(partialRe, line)
             if m:
-                foundStr = m.group(1)
+                foundStr = m.group(2)
                 if len(foundStr.split(' ')) > 1:
                     print(f"skipping difficult line {m.group(0)}")
                     continue
