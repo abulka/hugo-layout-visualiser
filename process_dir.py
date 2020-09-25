@@ -1,7 +1,7 @@
 import os
 
 from stats import Stats
-from styles import dirLineColour
+import styles
 from theme import Theme
 import settings
 
@@ -23,4 +23,4 @@ def processDir(path: str, theme: Theme, stats: Stats):
         return ""
     if "partials/" in relDir and os.path.isfile(path):
         return ""
-    return f'"{relDir}/" -{dirLineColour}- "{relPath}"\n'
+    return f'"{relDir}/" -{styles.dirLineColour}- "{relPath}"\n'

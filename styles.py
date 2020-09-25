@@ -3,17 +3,20 @@
 # dirLineColour = ""
 # partialLineColour = "[bold,#green]"
 
-dirColour = "grey"
-dirShapeColour = "Ivory"
+dirColour = "lightgrey"
+dirIconColour = "Ivory"
+dirBorderColour = "grey"
 dirLineColour = "[#grey]"
 
 htmlColour = "beige"
+htmlIconColour = "cadetblue"
 htmlBorderColour = "#6666ff"
 htmlLineColour = "cadetblue"
 
-partialsShapeColour = "cornsilk"
-partialLineColour = "[bold,#6666ff,dashed]"
+partialColour = "cornsilk"
+partialIconColour = "cornsilk"
 partialsBorderColour = "LightCoral"
+partialLineColour = "[bold,#6666ff,dashed]"
 
 reservedUmlClasses = """
 class "_default/single.html" << (S,#FF7700) >>

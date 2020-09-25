@@ -3,7 +3,7 @@ import re
 
 from settings import partialRe, debug
 from stats import Stats
-from styles import partialLineColour
+import styles
 from theme import Theme
 from util import isReserved
 
@@ -46,7 +46,7 @@ def processPartial(file: str, theme: Theme, stats: Stats):
                 if isReserved(fromFilePath):
                     connector = "*..>"
                 else:
-                    connector = f".{partialLineColour}.>"
+                    connector = f".{styles.partialLineColour}.>"
                 entry = f'"{fromFilePath}" {connector} "{toFilePath}"'
                 if entry not in stats.relationshipEntries:
                     stats.relationshipEntries.append(entry)

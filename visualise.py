@@ -36,13 +36,13 @@ set namespaceSeparator none
 title Theme "{themeName}"
 
 skinparam class {{ 
-    BackgroundColor<<dir>> {styles.dirShapeColour}
-    BorderColor<<dir>> {styles.dirColour}
+    BackgroundColor<<dir>> {styles.dirColour}
+    BorderColor<<dir>> {styles.dirBorderColour}
 
     BackgroundColor<<html>> {styles.htmlColour}
     BorderColor<<html>> {styles.htmlBorderColour}
 
-    BackgroundColor<<partial>> {styles.partialsShapeColour}
+    BackgroundColor<<partial>> {styles.partialColour}
     BorderColor<<partial>> {styles.partialsBorderColour}
 }}
 
