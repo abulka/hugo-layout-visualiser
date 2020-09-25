@@ -2,22 +2,18 @@ import glob
 import os
 import re
 from typing import List
+
+from styles_uml import dirLineColour, partialLineColour
 from stats import Stats
 from util import isReserved
 
 THEME_PATH = "/Users/Andy/Devel/hugo_tests/quickstart/themes"  # iMac
 # THEME_PATH = "/Users/Andy/Devel/hugo_tests/hugo-bare1/themes"  # macbook air
 partialRe = r'(partial|partialCached)[\s\w\(]*\"([\w\.\-\/]+)\"\s'
-debug = True
+debug = False
 buildDirStructure = True
 scanForPartials = True
 
-# Tip: bold breaks the dotted lines and makes them solid unless you re-specify dotted or dashed here
-# dirLineColour = "[bold,#grey]"
-dirLineColour = "[#grey]"
-# dirLineColour = ""
-# partialLineColour = "[bold,#green]"
-partialLineColour = "[bold,#6666ff,dashed]"
 
 def processDirMode(path, theme, themePath, stats: Stats):
     themePathInclThemeName = os.path.join(themePath, theme, "layouts")
@@ -91,7 +87,7 @@ def fileExistsLooseMatch(filename):
 
 
 def checkPathExists(fromFileName, partialFilenameNoExt, themePathInclThemeName):
-    _fromFile = os.path.join(themePathInclThemeName, fromFileName + '.html')
+    _fromFile = os.path.join(themePathInclThemeName, fromFileName)
     if not os.path.exists(_fromFile):
         print(f"missing from: {_fromFile}")
 
@@ -133,7 +129,7 @@ def scan(theme, themePath=THEME_PATH):
 @startuml "test-uml"
 skinparam backgroundcolor Ivory/Azure
 set namespaceSeparator none
-title Theme {theme}
+title Theme "{theme}"
 
 skinparam class {{ 
     BackgroundColor<<dir>> antiquewhite
