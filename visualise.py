@@ -6,6 +6,7 @@ from process_partial import processPartial
 from settings import THEME_PATH, debug, buildDirStructure, scanForPartials
 from stats import Stats
 from theme import Theme
+import styles
 
 
 def scan(themeName, themePath=THEME_PATH):
@@ -35,26 +36,19 @@ set namespaceSeparator none
 title Theme "{themeName}"
 
 skinparam class {{ 
-    BackgroundColor<<dir>> Ivory
-    BorderColor<<dir>> grey
+    BackgroundColor<<dir>> {styles.dirShapeColour}
+    BorderColor<<dir>> {styles.dirColour}
 
-    BackgroundColor<<html>> beige
-    BorderColor<<html>> #6666ff
+    BackgroundColor<<html>> {styles.htmlColour}
+    BorderColor<<html>> {styles.htmlBorderColour}
 
-    BackgroundColor<<partial>> cornsilk
-    BorderColor<<partial>> LightCoral
+    BackgroundColor<<partial>> {styles.partialsShapeColour}
+    BorderColor<<partial>> {styles.partialsBorderColour}
 }}
 
 {umls.rstrip()}
 
-class "_default/single.html" << (S,#FF7700) >>
-class "_default/list.html" << (L,#248811) >>
-class "_default/taxonomy.html" << (T,red) >>
-class "_default/baseof.html" << (B,orchid) >>
-class "index.html" << (I,yellow) >>
-
-class "_default/" << (_,red) >>
-class "partials/" << (P,orange) >>
+{styles.reservedUmlClasses}
 
 {stats.getUmlsForPartials()}
 {stats.getUmlsForHtmlFiles()}

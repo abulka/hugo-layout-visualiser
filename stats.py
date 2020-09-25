@@ -1,7 +1,7 @@
 import os
 from dataclasses import dataclass, field
 
-from styles import dirShapeColour, partialsShapeColour
+from styles import dirShapeColour, partialsShapeColour, htmlLineColour
 from util import isReserved
 from typing import List
 
@@ -54,7 +54,7 @@ class Stats:
         for path in self.html_files:
             if isReserved(path):
                 continue
-            result += f'class "{path}" << (H, cadetblue) html >> {{}}\n'
+            result += f'class "{path}" << (H, {htmlLineColour}) html >> {{}}\n'
         return result
 
     def report(self):

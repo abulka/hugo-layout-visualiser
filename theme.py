@@ -1,9 +1,5 @@
 import os
-from dataclasses import dataclass, field
-
-from styles import dirShapeColour, partialsShapeColour
-from util import isReserved
-from typing import List
+from dataclasses import dataclass
 
 
 @dataclass
