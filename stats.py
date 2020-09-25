@@ -9,12 +9,12 @@ from typing import List
 @dataclass
 class Stats:
     """
-    Simply records the files encountered, sorting them into two sets
-    so that we can later emit a list files in PlantUML syntax, each with
-    a unique annotation. Partials get "P" and Html files get "H".
+    Simply records the files encountered, sorting them into two sets so that we can later emit a
+    list files in PlantUML syntax, each with a unique annotation. Partials get "P" and Html files
+    get "H".
 
-    Need to know which files made it into the relationships, and suppress the
-    orphans when generating the uml.
+    Need to know which files made it into the relationships, and suppress the orphans when
+    generating the uml.
 
     """
     relationshipEntries: List = field(default_factory=list)  # just for de-duping
