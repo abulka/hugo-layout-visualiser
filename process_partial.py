@@ -44,9 +44,9 @@ def processPartial(file: str, theme: Theme, stats: Stats):
             if toPartial is not None:
                 toFilePath = os.path.join("partials", toPartial)
                 if isReserved(fromFilePath):
-                    connector = "*..>"
+                    connector = "*--->"
                 else:
-                    connector = f".{styles.partialLineColour}.>"
+                    connector = f"--{styles.partialLineColour}->"
 
                 entry = f'"{fromFilePath}" {connector} "{toFilePath}"'
 
