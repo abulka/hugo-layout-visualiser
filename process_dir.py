@@ -18,8 +18,15 @@ def processDir(path: str, theme: Theme, stats: Stats):
     if relDir == "":
         relDir = "layouts"
 
-    # Add the 'from' Dir
     relDir += "/"
+
+    skip = settings.hidePartialsDirStructure and os.path.isfile(path) and "partials/" in relDir
+    if skip:
+        if settings.debug:
+            print("processDir: partials/ node removed")
+        return ""
+
+    # Add the 'from' Dir
     stats.addDir(relDir)
 
     # Add the 'to' Dir or File - creates potential orphan nodes?
@@ -28,18 +35,11 @@ def processDir(path: str, theme: Theme, stats: Stats):
     else:
         stats.addDir(relPath)
 
-    # Clever stuff about hidePartialsDirStructure
-    if settings.hidePartialsDirStructure:
-        if relDir == "partials" and os.path.isfile(path):
-            return ""
-        if "partials/" in relDir and os.path.isfile(path):
-            return ""
-
     entry = f'"{relDir}" -{styles.dirLineColour}- "{relPath}"\n'
     if settings.debug:
         debugMsg = ""
         if os.path.isdir(path):
-            debugMsg = f"(DIR -- DIR connection)"
+            debugMsg += f"(DIR -- DIR connection)"
         print(f'processDir: "{relDir}" -- "{relPath}" {debugMsg}')
 
     return entry
