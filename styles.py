@@ -29,3 +29,4 @@ class "index.html" << (I,yellow) >>
 class "_default/" << (_,red) >>
 class "partials/" << (P,orange) >>
 """
+reservedUmlClasses = ""

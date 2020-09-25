@@ -58,7 +58,7 @@ class Stats:
     def getDirsUml(self):
         result = ""
         for _dir in self.dirNodes:
-            result += f'class "{_dir}/" << (D,{styles.dirIconColour}) dir >> {{}}\n'
+            result += f'class "{_dir}" << (D,{styles.dirIconColour}) dir >> {{}}\n'
         return result
 
     def getUmlsForPartials(self):

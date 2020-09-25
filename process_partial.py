@@ -30,9 +30,9 @@ def ensureHtmlExt(foundStr, theme):
         if os.path.isfile(possiblePartialHtmlFile):
             result = foundStr + ".html"  # repaired ok
         elif os.path.isdir(possiblePartialDir):
-            raise RuntimeWarning(f"bad partials ref {foundStr} is a dir, giving up")
+            raise RuntimeWarning(f"{theme.name}: bad partials ref {foundStr} is a dir, giving up")
         else:
-            raise RuntimeWarning(f"unknown partials ref {foundStr}, giving up")
+            raise RuntimeWarning(f"{theme.name}: unknown partials ref {foundStr}, giving up")
     else:
         result = foundStr  # no repair needed
     return result
