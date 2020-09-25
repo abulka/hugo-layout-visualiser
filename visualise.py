@@ -66,7 +66,7 @@ hide empty members
         print(stats.report())
 
 
-# scan("ananke")
+scan("ananke")
 # scan("toha")
 scan("zzo")
 # scan("docsy", "/Users/Andy/Devel/hugo_tests/docsy-example/themes/")
