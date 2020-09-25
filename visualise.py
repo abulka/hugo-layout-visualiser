@@ -66,11 +66,11 @@ hide empty members
         print(stats.report())
 
 
-scan("ananke")
-scan("toha")
+# scan("ananke")
+# scan("toha")
 scan("zzo")
-scan("docsy", "/Users/Andy/Devel/hugo_tests/docsy-example/themes/")
+# scan("docsy", "/Users/Andy/Devel/hugo_tests/docsy-example/themes/")
 # scan("diagnostic-andy", "/Users/Andy/Devel/hugo_tests/hugo-bare1/themes/")
-scan("example_theme", "/Users/Andy/Devel/hugo_tests/hugo-layout-visualiser/")
+# scan("example_theme", "/Users/Andy/Devel/hugo_tests/hugo-layout-visualiser/")
 
 print("done")

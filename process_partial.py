@@ -6,10 +6,44 @@ from stats import Stats
 import styles
 from theme import Theme
 from util import isReserved
+import os
 
 
-def getToPartial(line):
-    """Scan text line for the phrase {{ partial nnnn }} and return nnnn or None."""
+def ensureHtmlExt(foundStr, theme):
+    """
+    Though might get something like
+        {{ partial (print "svgs/etc/" .type ".svg") (dict "width" 23 "height" 23) }}
+    which produces
+        "svgs/etc/"
+    because the parser is just a sumb regular expression, not a proper 'go' template parser.
+    So that's not a .html file its a dir, what to do?
+
+    :param foundStr:
+    :param theme: theme instance, needed for theme.layoutDirAbs
+    :return:
+    """
+    filename, file_extension = os.path.splitext(foundStr)
+    if not file_extension:
+        # could be shorthand reference to a .html file or a partial with go syntax we cannot parse
+        possiblePartialDir = os.path.join(theme.layoutDirAbs, "partials", foundStr)
+        possiblePartialHtmlFile = possiblePartialDir + ".html"
+
+        if os.path.isfile(possiblePartialHtmlFile):
+            result = foundStr + ".html"  # repaired ok
+        elif os.path.isdir(possiblePartialDir):
+            raise RuntimeWarning(f"bad partials ref {foundStr} is a dir, giving up")
+        else:
+            raise RuntimeWarning(f"unknown partials ref {foundStr}, giving up")
+    else:
+        result = foundStr  # no repair needed
+    return result
+
+
+def getToPartial(line, theme):
+    """Scan text line for the phrase {{ partial nnnn }} and return nnnn or None.
+    None means there was no partial in that line. An exception means there was one
+    but we couldn't figure it out (need proper go template parser).
+    """
     line = line.strip()
     m = re.search(partialRe, line)
     if m:
@@ -18,6 +52,7 @@ def getToPartial(line):
             raise RuntimeWarning(f"skipping difficult line {m.group(0)}")
         if debug:
             print(f"✅ {line} / found match: {foundStr}")
+        foundStr = ensureHtmlExt(foundStr, theme)
         return foundStr
     else:
         if debug:
@@ -38,8 +73,9 @@ def processPartial(file: str, theme: Theme, stats: Stats):
     for line in lines:
         if "partial" in line:
             try:
-                toPartial = getToPartial(line)
-            except RuntimeWarning:
+                toPartial = getToPartial(line, theme)
+            except RuntimeWarning as e:
+                print(e)
                 continue
             if toPartial is not None:
                 toFilePath = os.path.join("partials", toPartial)
@@ -68,4 +104,4 @@ def checkPartialFilePathsExists(fromFilePath, toFilePath, layoutDirPathAbs):
 
     _toFile = os.path.join(layoutDirPathAbs, toFilePath)
     if not os.path.exists(_toFile):
-        print(f"missing to: {_toFile}")
+        print(f"missing to: {_toFile} toFilePath={toFilePath}")
