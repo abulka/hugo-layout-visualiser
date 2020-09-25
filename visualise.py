@@ -12,6 +12,12 @@ debug = True
 buildDirStructure = True
 scanForPartials = True
 
+# Tip: bold breaks the dotted lines and makes them solid unless you re-specify dotted or dashed here
+# dirLineColour = "[bold,#grey]"
+dirLineColour = "[#grey]"
+# dirLineColour = ""
+# partialLineColour = "[bold,#green]"
+partialLineColour = "[bold,#6666ff,dashed]"
 
 def processDirMode(path, theme, themePath, stats: Stats):
     themePathInclThemeName = os.path.join(themePath, theme, "layouts")
@@ -22,7 +28,11 @@ def processDirMode(path, theme, themePath, stats: Stats):
     if relDir == "":
         relDir = "layouts"
     stats.addDir(relDir)
-    return f'"{relDir}/" -- "{relPath}"\n'
+    if relDir == "partials" and os.path.isfile(path):
+        return ""
+    if "partials/" in relDir and os.path.isfile(path):
+        return ""
+    return f'"{relDir}/" -{dirLineColour}- "{relPath}"\n'
 
 
 def process(file: str, themeName: str, themePath: str, relationshipEntries: List, stats: Stats):
@@ -61,7 +71,7 @@ def process(file: str, themeName: str, themePath: str, relationshipEntries: List
                 if isReserved(relPathNoExt):
                     connector = "*..>"
                 else:
-                    connector = "..>"
+                    connector = f".{partialLineColour}.>"
                 entry = f'"{relPathNoExt}" {connector} "{partialFilenameNoExt}"'
                 # entry += " : {{ partial }}"
                 if entry not in relationshipEntries:
@@ -125,6 +135,11 @@ skinparam backgroundcolor Ivory/Azure
 set namespaceSeparator none
 title Theme {theme}
 
+skinparam class {{ 
+    BackgroundColor<<dir>> antiquewhite
+    BackgroundColor<<layout>> white
+}}
+
 {umls.rstrip()}
 
 class "_default/single.html" << (S,#FF7700) >>
@@ -153,7 +168,7 @@ hide empty members
         print(stats.report())
 
 
-# scan("ananke")
+scan("ananke")
 # scan("toha")
 # scan("zzo")
 # scan("docsy", "/Users/Andy/Devel/hugo_tests/docsy-example/themes/")

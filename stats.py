@@ -3,6 +3,8 @@ from dataclasses import dataclass, field
 from util import isReserved
 from typing import List
 
+dirShapeColour = "grey"
+partialsShapeColour = "cornsilk"
 
 @dataclass
 class Stats:
@@ -37,7 +39,7 @@ class Stats:
     def getDirsUml(self):
         result = ""
         for _dir in self.dirNodes:
-            result += f'class "{_dir}/" << (-,red) >> {{}}\n'
+            result += f'class "{_dir}/" << (D,{dirShapeColour}) dir >> {{}}\n'
         return result
 
     def getUmlsForPartials(self):
@@ -45,7 +47,7 @@ class Stats:
         for path in self.partial_files:
             if isReserved(path):
                 continue
-            result += f'class "{path}" << (P,cornsilk) >> {{}}\n'
+            result += f'class "{path}" << (P,{partialsShapeColour}) layout >> {{}}\n'
         return result
 
     def getUmlsForHtmlFiles(self):
