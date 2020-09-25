@@ -16,7 +16,7 @@ buildDirStructure = True
 scanForPartials = True
 
 
-def processDir(path, theme: Theme, stats: Stats):
+def processDir(path: str, theme: Theme, stats: Stats):
     relPath = os.path.relpath(path, theme.layoutDirAbs)
     relDir = os.path.dirname(relPath)
     if "." not in relPath:
@@ -31,13 +31,10 @@ def processDir(path, theme: Theme, stats: Stats):
     return f'"{relDir}/" -{dirLineColour}- "{relPath}"\n'
 
 
-def process(file: str, theme: Theme, relationshipEntries: List, stats: Stats):
+def processPartial(file: str, theme: Theme, relationshipEntries: List, stats: Stats):
     """Process a single html file looking for 'partial' entries, returns a chunk of plantUML"""
     uml = ""
-    layoutDirPathAbs = theme.layoutDirAbs
-    relPath = os.path.relpath(file, layoutDirPathAbs)
-    partialHtmlFile = relPath
-    # relDir = os.path.dirname(relPath)
+    fromFilePath = os.path.relpath(file, theme.layoutDirAbs)
 
     with open(file) as fp:
         lines = fp.readlines()
@@ -57,20 +54,20 @@ def process(file: str, theme: Theme, relationshipEntries: List, stats: Stats):
                 what is its full path? its relative to the partials dir !
                 And if it doesn't exist, then it might be higher up the directory tree?
                 """
-                partialFilePath = os.path.join("partials", foundStr)
-                if debug: print(f"✅ {line} / found match: {partialFilePath}")
-                if isReserved(partialHtmlFile):
+                toFilePath = os.path.join("partials", foundStr)
+                if debug: print(f"✅ {line} / found match: {toFilePath}")
+                if isReserved(fromFilePath):
                     connector = "*..>"
                 else:
                     connector = f".{partialLineColour}.>"
-                entry = f'"{partialHtmlFile}" {connector} "{partialFilePath}"'
+                entry = f'"{fromFilePath}" {connector} "{toFilePath}"'
                 # entry += " : {{ partial }}"
                 if entry not in relationshipEntries:
                     relationshipEntries.append(entry)
                     uml += f'{entry}\n'
-                    stats.add(partialHtmlFile, partialFilePath)
+                    stats.add(fromFilePath, toFilePath)
 
-                checkPartialFilePathsExists(partialHtmlFile, partialFilePath, layoutDirPathAbs)
+                checkPartialFilePathsExists(fromFilePath, toFilePath, theme.layoutDirAbs)
             else:
                 if debug: print(f"❌ {line} / no match?")
 
@@ -81,12 +78,12 @@ def fileExistsLooseMatch(filename):
     return bool(glob.glob(filename))
 
 
-def checkPartialFilePathsExists(partialHtmlFile, partialFilePath, layoutDirPathAbs):
-    _fromFile = os.path.join(layoutDirPathAbs, partialHtmlFile)
+def checkPartialFilePathsExists(fromFilePath, toFilePath, layoutDirPathAbs):
+    _fromFile = os.path.join(layoutDirPathAbs, fromFilePath)
     if not os.path.exists(_fromFile):
         print(f"missing from: {_fromFile}")
 
-    _toFile = os.path.join(layoutDirPathAbs, partialFilePath)
+    _toFile = os.path.join(layoutDirPathAbs, toFilePath)
     if not os.path.exists(_toFile):
         print(f"missing to: {_toFile}")
 
@@ -112,7 +109,7 @@ def scan(themeName, themePath=THEME_PATH):
         rootDir = os.path.join(themePath, f"{themeName}/layouts/") + '/**/*.html'
         for path in glob.iglob(rootDir, recursive=True):
             if debug: print(themePath, path)
-            umls += process(path, theme, relationshipEntries, stats)
+            umls += processPartial(path, theme, relationshipEntries, stats)
 
     finalPlantUML = f"""
 @startuml "test-uml"
