@@ -49,7 +49,15 @@ Here is the famous [ananke](https://themes.gohugo.io/gohugo-theme-ananke/) theme
 
 Here is the [docsy](https://themes.gohugo.io/docsy/) theme, with 
 a few modifications
-![Image](images/docsy.svg)
+![Image](https://raw.githubusercontent.com/abulka/hugo-layout-visualiser/master/images/docsy.svg?sanitize=true)
+
+## Why was this created?
+
+Trying to figure out how to override parts of a theme means understanding the theme and then copying certain partials or other layout html files into your own hugo project `layout/` directory so that your copies override the theme versions.
+
+Understanding which bit of a theme does what needs serious study. This visualisation tool lets you see:
+- the directory structure of the theme
+- what `{{ partial nnn }}` references exist - these are the solid lines in the diagram   
 
 ## Future enhancements
 
@@ -58,4 +66,9 @@ a few modifications
 themes and paths and output locations on the command line.
 - call the internet to render the PlantUML automatically into
 an image and create the image file directly on the user's 
-computer.
+computer. 
+- a better parser that understands `go` the templating language
+- more attributes of each html/partial file could be represented eg. variables used etc.
+- integration with vscode as an extension, which would mean converting this Python code to Typescript/Javascript.
+ 
+
