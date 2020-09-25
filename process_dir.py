@@ -21,6 +21,6 @@ def processDir(path: str, theme: Theme, stats: Stats):
     stats.addDir(relDir)
     if relDir == "partials" and os.path.isfile(path):
         return ""
-    if settings.hidePartialDirsLines and "partials/" in relDir and os.path.isfile(path):
+    if settings.hidePartialsDirStructure and "partials/" in relDir and os.path.isfile(path):
         return ""
     return f'"{relDir}/" -{styles.dirLineColour}- "{relPath}"\n'
