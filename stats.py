@@ -46,7 +46,7 @@ class Stats:
         for path in self.partial_files:
             if isReserved(path):
                 continue
-            result += f'class "{path}" << (P,{partialsShapeColour}) layout >> {{}}\n'
+            result += f'class "{path}" << (P,{partialsShapeColour}) partial >> {{}}\n'
         return result
 
     def getUmlsForHtmlFiles(self):
@@ -54,7 +54,7 @@ class Stats:
         for path in self.html_files:
             if isReserved(path):
                 continue
-            result += f'class "{path}" << (H, cadetblue) >> {{}}\n'
+            result += f'class "{path}" << (H, cadetblue) html >> {{}}\n'
         return result
 
     def report(self):

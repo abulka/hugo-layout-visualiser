@@ -3,7 +3,7 @@
 # dirLineColour = ""
 # partialLineColour = "[bold,#green]"
 
-dirShapeColour = "grey"
+dirShapeColour = "Ivory"
 dirLineColour = "[#grey]"
 
 partialsShapeColour = "cornsilk"

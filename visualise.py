@@ -35,8 +35,14 @@ set namespaceSeparator none
 title Theme "{themeName}"
 
 skinparam class {{ 
-    BackgroundColor<<dir>> antiquewhite
-    BackgroundColor<<layout>> white
+    BackgroundColor<<dir>> Ivory
+    BorderColor<<dir>> grey
+
+    BackgroundColor<<html>> beige
+    BorderColor<<html>> #6666ff
+
+    BackgroundColor<<partial>> cornsilk
+    BorderColor<<partial>> LightCoral
 }}
 
 {umls.rstrip()}
