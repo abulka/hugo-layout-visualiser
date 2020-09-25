@@ -1,19 +1,12 @@
 import glob
 import os
 import re
-from typing import List
 
+from settings import THEME_PATH, partialRe, debug, buildDirStructure, scanForPartials
 from styles import dirLineColour, partialLineColour
 from stats import Stats
 from theme import Theme
 from util import isReserved
-
-THEME_PATH = "/Users/Andy/Devel/hugo_tests/quickstart/themes"  # iMac
-# THEME_PATH = "/Users/Andy/Devel/hugo_tests/hugo-bare1/themes"  # macbook air
-partialRe = r'(partial|partialCached)[\s\w\(]*\"([\w\.\-\/]+)\"\s'
-debug = False
-buildDirStructure = True
-scanForPartials = True
 
 
 def processDir(path: str, theme: Theme, stats: Stats):
@@ -32,14 +25,20 @@ def processDir(path: str, theme: Theme, stats: Stats):
 
 
 def getToPartial(line):
+    """Scan text line for the phrase {{ partial nnnn }} and return nnnn or None."""
     line = line.strip()
     m = re.search(partialRe, line)
     if m:
         foundStr = m.group(2)
         if len(foundStr.split(' ')) > 1:
             raise RuntimeWarning(f"skipping difficult line {m.group(0)}")
+        if debug:
+            print(f"✅ {line} / found match: {foundStr}")
         return foundStr
-    return None
+    else:
+        if debug:
+            print(f"❌ {line} / no match?")
+        return None
 
 
 def processPartial(file: str, theme: Theme, stats: Stats):
@@ -52,18 +51,11 @@ def processPartial(file: str, theme: Theme, stats: Stats):
     for line in lines:
         if "partial" in line:
             try:
-                foundStr = getToPartial(line)
+                toPartial = getToPartial(line)
             except RuntimeWarning:
                 continue
-            if foundStr is not None:
-                """
-                this is the tricky bit.
-                where is the partial? we have a basename only at this point.
-                what is its full path? its relative to the partials dir !
-                And if it doesn't exist, then it might be higher up the directory tree?
-                """
-                toFilePath = os.path.join("partials", foundStr)
-                if debug: print(f"✅ {line} / found match: {toFilePath}")
+            if toPartial is not None:
+                toFilePath = os.path.join("partials", toPartial)
                 if isReserved(fromFilePath):
                     connector = "*..>"
                 else:
@@ -76,8 +68,6 @@ def processPartial(file: str, theme: Theme, stats: Stats):
                     stats.add(fromFilePath, toFilePath)
 
                 checkPartialFilePathsExists(fromFilePath, toFilePath, theme.layoutDirAbs)
-            else:
-                if debug: print(f"❌ {line} / no match?")
 
     return uml
 
