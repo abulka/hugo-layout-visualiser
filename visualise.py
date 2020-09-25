@@ -19,14 +19,15 @@ def scan(themeName, themePath=THEME_PATH):
 
     assert stats.isEmpty()
 
+    rootDir = os.path.join(themePath, f"{themeName}/layouts/")
+    assert os.path.exists(rootDir), f"no such dir {rootDir}"
+
     if buildDirStructure:
-        rootDir = os.path.join(themePath, f"{themeName}/layouts/") + '/**/*'
-        for path in glob.iglob(rootDir, recursive=True):
+        for path in glob.iglob(rootDir + '/**/*', recursive=True):
             umls += processDir(path, theme, stats)
 
     if scanForPartials:
-        rootDir = os.path.join(themePath, f"{themeName}/layouts/") + '/**/*.html'
-        for path in glob.iglob(rootDir, recursive=True):
+        for path in glob.iglob(rootDir + '/**/*.html', recursive=True):
             umls += processPartial(path, theme, stats)
 
     finalPlantUML = f"""
