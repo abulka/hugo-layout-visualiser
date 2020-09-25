@@ -5,7 +5,6 @@ from settings import partialRe, debug
 from stats import Stats
 import styles
 from theme import Theme
-from util import isReserved
 import os
 
 
@@ -15,7 +14,7 @@ def ensureHtmlExt(foundStr, theme):
         {{ partial (print "svgs/etc/" .type ".svg") (dict "width" 23 "height" 23) }}
     which produces
         "svgs/etc/"
-    because the parser is just a sumb regular expression, not a proper 'go' template parser.
+    because the parser is just a dumb regular expression, not a proper 'go' template parser.
     So that's not a .html file its a dir, what to do?
 
     :param foundStr:
@@ -79,21 +78,10 @@ def processPartial(file: str, theme: Theme, stats: Stats):
                 continue
             if toPartial is not None:
                 toFilePath = os.path.join("partials", toPartial)
-                if isReserved(fromFilePath):
-                    connector = "*--->"
-                else:
-                    connector = f"--{styles.partialLineColour}->"
-
-                entry = f'"{fromFilePath}" {connector} "{toFilePath}"'
-
-                if entry not in stats.relationshipEntries:
-                    stats.relationshipEntries.append(entry)
-                    stats.add(fromFilePath)
-                    stats.add(toFilePath)
-                    uml += f'{entry}\n'
-
+                entry = stats.addRelationship(fromFilePath, toFilePath)
                 checkPartialFilePathsExists(fromFilePath, toFilePath, theme.layoutDirAbs)
-
+                if entry:
+                    uml += f'{entry}\n'
     return uml
 
 

@@ -12,6 +12,10 @@ class Stats:
     Simply records the files encountered, sorting them into two sets
     so that we can later emit a list files in PlantUML syntax, each with
     a unique annotation. Partials get "P" and Html files get "H".
+
+    Need to know which files made it into the relationships, and suppress the
+    orphans when generating the uml.
+
     """
     relationshipEntries: List = field(default_factory=list)  # just for de-duping
 
@@ -20,7 +24,23 @@ class Stats:
     html_files: set = field(default_factory=set)
     partial_files: set = field(default_factory=set)
 
-    # partial_dirs = []
+    def addRelationship(self, fromFilePath, toFilePath):
+        # TODO mark the relevant html_files/partial_files as 'in a relationship'
+
+        if isReserved(fromFilePath):
+            connector = "*--->"
+        else:
+            connector = f"--{styles.partialLineColour}->"
+
+        entry = f'"{fromFilePath}" {connector} "{toFilePath}"'
+
+        if entry not in self.relationshipEntries:
+            self.relationshipEntries.append(entry)
+            self.add(fromFilePath)
+            self.add(toFilePath)
+            return entry
+        else:
+            return None
 
     def isEmpty(self):
         return len(self.html_files) == 0 and len(self.partial_files) == 0
