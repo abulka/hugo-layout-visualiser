@@ -1,7 +1,7 @@
 import os
 from dataclasses import dataclass, field
 
-from styles_uml import dirShapeColour, partialsShapeColour
+from styles import dirShapeColour, partialsShapeColour
 from util import isReserved
 from typing import List
 

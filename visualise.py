@@ -3,8 +3,9 @@ import os
 import re
 from typing import List
 
-from styles_uml import dirLineColour, partialLineColour
+from styles import dirLineColour, partialLineColour
 from stats import Stats
+from theme import Theme
 from util import isReserved
 
 THEME_PATH = "/Users/Andy/Devel/hugo_tests/quickstart/themes"  # iMac
@@ -15,9 +16,8 @@ buildDirStructure = True
 scanForPartials = True
 
 
-def processDirMode(path, theme, themePath, stats: Stats):
-    themePathInclThemeName = os.path.join(themePath, theme, "layouts")
-    relPath = os.path.relpath(path, themePathInclThemeName)
+def processDir(path, theme: Theme, stats: Stats):
+    relPath = os.path.relpath(path, theme.layoutDirAbs)
     relDir = os.path.dirname(relPath)
     if "." not in relPath:
         relPath = f"{relPath}/"
@@ -31,10 +31,10 @@ def processDirMode(path, theme, themePath, stats: Stats):
     return f'"{relDir}/" -{dirLineColour}- "{relPath}"\n'
 
 
-def process(file: str, themeName: str, themePath: str, relationshipEntries: List, stats: Stats):
+def process(file: str, theme: Theme, relationshipEntries: List, stats: Stats):
     """Process a single html file looking for 'partial' entries, returns a chunk of plantUML"""
     uml = ""
-    layoutDirPathAbs = os.path.join(themePath, themeName, "layouts")
+    layoutDirPathAbs = theme.layoutDirAbs
     relPath = os.path.relpath(file, layoutDirPathAbs)
     partialHtmlFile = relPath
     # relDir = os.path.dirname(relPath)
@@ -91,33 +91,34 @@ def checkPartialFilePathsExists(partialHtmlFile, partialFilePath, layoutDirPathA
         print(f"missing to: {_toFile}")
 
 
-def scan(theme, themePath=THEME_PATH):
+def scan(themeName, themePath=THEME_PATH):
     """Main entry point, scans the `theme` at `themePath` and writes a file
     of plantUML representing the them structure to `theme_out.wsd`
     """
     umls = ""
     stats = Stats()
     relationshipEntries = []
+    theme = Theme(name=themeName, path=themePath)
 
     assert stats.isEmpty()
 
     if buildDirStructure:
-        rootDir = os.path.join(themePath, f"{theme}/layouts/") + '/**/*'
+        rootDir = os.path.join(themePath, f"{themeName}/layouts/") + '/**/*'
         for path in glob.iglob(rootDir, recursive=True):
             if debug: print(f"dir mode: {path}")
-            umls += processDirMode(path, theme, themePath, stats)
+            umls += processDir(path, theme, stats)
 
     if scanForPartials:
-        rootDir = os.path.join(themePath, f"{theme}/layouts/") + '/**/*.html'
+        rootDir = os.path.join(themePath, f"{themeName}/layouts/") + '/**/*.html'
         for path in glob.iglob(rootDir, recursive=True):
             if debug: print(themePath, path)
-            umls += process(path, theme, themePath, relationshipEntries, stats)
+            umls += process(path, theme, relationshipEntries, stats)
 
     finalPlantUML = f"""
 @startuml "test-uml"
 skinparam backgroundcolor Ivory/Azure
 set namespaceSeparator none
-title Theme "{theme}"
+title Theme "{themeName}"
 
 skinparam class {{ 
     BackgroundColor<<dir>> antiquewhite
@@ -144,7 +145,7 @@ hide empty members
 @enduml
     """
     # print(finalPlantUML)
-    with open(f"out/{theme}.wsd", "w") as fp:
+    with open(f"out/{themeName}.wsd", "w") as fp:
         fp.write(finalPlantUML.lstrip())
 
     if debug:
