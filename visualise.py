@@ -21,13 +21,11 @@ def scan(themeName, themePath=THEME_PATH):
     if buildDirStructure:
         rootDir = os.path.join(themePath, f"{themeName}/layouts/") + '/**/*'
         for path in glob.iglob(rootDir, recursive=True):
-            if debug: print(f"dir mode: {path}")
             umls += processDir(path, theme, stats)
 
     if scanForPartials:
         rootDir = os.path.join(themePath, f"{themeName}/layouts/") + '/**/*.html'
         for path in glob.iglob(rootDir, recursive=True):
-            if debug: print(themePath, path)
             umls += processPartial(path, theme, stats)
 
     finalPlantUML = f"""

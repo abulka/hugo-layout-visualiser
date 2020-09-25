@@ -27,6 +27,9 @@ def getToPartial(line):
 
 def processPartial(file: str, theme: Theme, stats: Stats):
     """Process a single html file looking for 'partial' entries, returns a chunk of plantUML"""
+    if debug:
+        print("processPartial", theme, file)
+
     uml = ""
     fromFilePath = os.path.relpath(file, theme.layoutDirAbs)
 
@@ -45,11 +48,11 @@ def processPartial(file: str, theme: Theme, stats: Stats):
                 else:
                     connector = f".{partialLineColour}.>"
                 entry = f'"{fromFilePath}" {connector} "{toFilePath}"'
-                # entry += " : {{ partial }}"
                 if entry not in stats.relationshipEntries:
                     stats.relationshipEntries.append(entry)
+                    stats.add(fromFilePath)
+                    stats.add(toFilePath)
                     uml += f'{entry}\n'
-                    stats.add(fromFilePath, toFilePath)
 
                 checkPartialFilePathsExists(fromFilePath, toFilePath, theme.layoutDirAbs)
 

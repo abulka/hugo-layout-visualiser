@@ -13,29 +13,27 @@ class Stats:
     so that we can later emit a list files in PlantUML syntax, each with
     a unique annotation. Partials get "P" and Html files get "H".
     """
-    relationshipEntries: List = field(default_factory=list)
+    relationshipEntries: List = field(default_factory=list)  # just for de-duping
+
+    dirNodes: List = field(default_factory=list)
+
     html_files: set = field(default_factory=set)
     partial_files: set = field(default_factory=set)
-    dirNodes: List = field(default_factory=list)
 
     # partial_dirs = []
 
     def isEmpty(self):
         return len(self.html_files) == 0 and len(self.partial_files) == 0
 
-    def _add(self, path):
+    def add(self, path):
         head, tail = os.path.split(path)
         if head.split(os.path.sep)[0] == 'partials':
             self.partial_files.add(path)
         else:
             self.html_files.add(path)
 
-    def add(self, fromFileName, partialFilenameNoExt):
-        self._add(fromFileName)
-        self._add(partialFilenameNoExt)
-
-    def addDir(self, dir: str):
-        self.dirNodes.append(dir)
+    def addDir(self, path: str):
+        self.dirNodes.append(path)
 
     def getDirsUml(self):
         result = ""
