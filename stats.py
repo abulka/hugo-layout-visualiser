@@ -13,6 +13,7 @@ class Stats:
     so that we can later emit a list files in PlantUML syntax, each with
     a unique annotation. Partials get "P" and Html files get "H".
     """
+    relationshipEntries: List = field(default_factory=list)
     html_files: set = field(default_factory=set)
     partial_files: set = field(default_factory=set)
     dirNodes: List = field(default_factory=list)
