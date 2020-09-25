@@ -47,7 +47,9 @@ def processPartial(file: str, theme: Theme, stats: Stats):
                     connector = "*..>"
                 else:
                     connector = f".{styles.partialLineColour}.>"
+
                 entry = f'"{fromFilePath}" {connector} "{toFilePath}"'
+
                 if entry not in stats.relationshipEntries:
                     stats.relationshipEntries.append(entry)
                     stats.add(fromFilePath)

@@ -1,22 +1,21 @@
 # Tip: bold breaks the dotted lines and makes them solid unless you re-specify dotted or dashed here
-# dirLineColour = "[bold,#grey]"
-# dirLineColour = ""
-# partialLineColour = "[bold,#green]"
 
 dirColour = "lightgrey"
-dirIconColour = "Ivory"
+dirIconColour = "silver"
 dirBorderColour = "grey"
-dirLineColour = "[#grey]"
+dirLineColour = "[bold,#grey]"
 
 htmlColour = "beige"
 htmlIconColour = "cadetblue"
-htmlBorderColour = "#6666ff"
-htmlLineColour = "cadetblue"
+htmlBorderColour = "cadetblue"
+# htmlLineColour = "cadetblue"
+cadetblue = "#6BA9AA"
+cadetblueDarker = "#548485"
 
 partialColour = "cornsilk"
 partialIconColour = "cornsilk"
 partialsBorderColour = "LightCoral"
-partialLineColour = "[bold,#6666ff,dashed]"
+partialLineColour = f"[bold,{cadetblueDarker},dashed]"
 
 reservedUmlClasses = """
 class "_default/single.html" << (S,#FF7700) >>
