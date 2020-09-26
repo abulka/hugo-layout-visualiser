@@ -22,6 +22,11 @@ def scan(themeName, themePath=THEME_PATH):
     rootDir = os.path.join(themePath, f"{themeName}/layouts/")
     assert os.path.exists(rootDir), f"no such dir {rootDir}"
 
+    outDir = "out/"
+    if not os.path.exists(outDir):
+        os.mkdir(outDir)
+    assert os.path.exists(outDir), f"no such dir {outDir}"
+
     if buildDirStructure:
         for path in glob.iglob(rootDir + '/**/*', recursive=True):
             umls += processDir(path, theme, stats)
@@ -59,7 +64,7 @@ hide empty members
 
 @enduml
     """
-    with open(f"out/{themeName}.wsd", "w") as fp:
+    with open(os.path.join(outDir, f"{themeName}.wsd"), "w") as fp:
         fp.write(finalPlantUML.lstrip())
 
     if debug:
